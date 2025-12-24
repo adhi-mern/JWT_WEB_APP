@@ -1,0 +1,40 @@
+> Auth flow
+
+✅ Signup page
+✅ Database (MongoDB)
+✅ Password hashing
+✅ JWT + Refresh Token
+✅ JWT stored in browser cache (localStorage)
+✅ Protected route using JWT
+✅ Welcome page → Welcome <username>
+
+1️⃣ Frontend (React)
+
+Collect user input
+Display pages (Login / Signup / Home)
+Store JWT
+Send authenticated requests
+
+2️⃣ Backend (Node + Express)
+
+Validate input
+Authenticate user
+Generate JWT
+Protect routes
+Talk to database
+
+3️⃣ Database (MongoDB)
+
+Store users
+Store hashed passwords
+
+4️⃣ JWT (Access Token)
+
+Prove identity after login
+Avoid sending password again
+Stateless authentication
+
+5️⃣ Refresh Token
+
+Get new JWT when old one expires
+Prevent frequent re-login
