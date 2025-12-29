@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from 'axios';
+
 
 function Signup() {
   const [email, setEmail] = useState("");
@@ -7,10 +9,20 @@ function Signup() {
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
-  const handleSignup = () => {
-    // backend call later
+  const handleSignup = async() => {
     console.log({ email, username, password });
+    //useEffect isolates side effects
+      try{
+      const register = await axios.post("http://localhost:5000/signup", {
+        email, username, password
+      })
+      alert(register.data.message);
+       // redirect
     navigate("/login");
+    }catch(error){
+      console.log(error);
+      alert("Signup failed");
+    }
   };
 
   return (

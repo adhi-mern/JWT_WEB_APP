@@ -5,13 +5,16 @@ const crypto = require("crypto");
 require("dotenv").config();
 
 
+//Cross-Origin Resource Sharing - Browser security blocking your frontend → backend requests.
 const User = require("./models/User");
 const sendVerificationEmail = require("./utils/sendEmail");
 
 const app = express();
 app.use(express.json());
+const cors = require('cors');
+app.use(cors());
 
-// 
+// database 
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB connected"))
   .catch(err => {
@@ -20,6 +23,7 @@ mongoose.connect(process.env.MONGO_URI)
   });
 
 //signup
+//Express automatically passes (req, res) objects to every route handler
 app.post("/signup", async (req, res) => {
   try {// catch error
     const { email, username, password } = req.body;
@@ -108,8 +112,20 @@ app.get("/verify-email/:token", async (req, res) => {
   }
 });
 
-
+app.post("/login", async (req, res) =>{
+  //tocken system
+  try{
+    const{username, password} = req.body;
+    if(!username || !password){
+      return re.status(400).json({message: "All fields required"})
+    }
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const existingUser = await User.findOne({
+      $and: [{username}, {password}]
+    });
+  }catch{};
+});
 // start server
-app.listen(5000, () => {9
+app.listen(5000, () => {
   console.log("Server running on http://localhost:5000");
 });
