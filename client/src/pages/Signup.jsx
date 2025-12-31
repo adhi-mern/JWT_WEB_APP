@@ -18,7 +18,7 @@ function Signup() {
       })
       alert(register.data.message);
        // redirect
-    navigate("/login");
+      navigate("/login");
     }catch(error){
       console.log(error);
       alert("Signup failed");

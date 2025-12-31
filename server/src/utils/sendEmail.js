@@ -1,4 +1,4 @@
-const nodemailer = require('nodemailer');
+import nodemailer from "nodemailer";
 
 const transporter = nodemailer.createTransport({
   host: process.env.EMAIL_HOST,
@@ -29,4 +29,4 @@ const transporter = nodemailer.createTransport({
   }
 }
 
-module.exports = sendVerificationEmail;
+export default sendVerificationEmail;
