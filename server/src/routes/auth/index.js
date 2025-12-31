@@ -4,21 +4,18 @@ import crypto from 'crypto';
 import dotenv from 'dotenv';
 dotenv.config();
 
-//Cross-Origin Resource Sharing(cors) - Browser security blocking your frontend → backend requests.
 import User from '../../models/User.js';
 import sendVerificationEmail from '../../utils/sendEmail.js';
 import Verified from '../../models/Verified.js';
-import cors from 'cors';
 
 const app = express();
 app.use(express.json());
-app.use(cors());
 
-const Router = express.Router();
+const router= express.Router();
 
 //signup
 //Express automatically passes (req, res) objects to every route handler
-Router.post("/signup", async (req, res) => {
+router.post("/signup", async (req, res) => {
   try {// catch error
     const { email, username, password } = req.body;
 
@@ -60,6 +57,12 @@ Router.post("/signup", async (req, res) => {
       emailVerificationToken: hashedToken,
       emailVerificationExpires: Date.now() + 10 * 60 * 1000
     });
+    // Date.now()           = Current time in milliseconds (e.g., 1735620000000)
+    // 10 * 60 * 1000       = 600,000 milliseconds = 10 minutes
+    // 1 second  = 1,000 ms
+    // 1 minute  = 60 * 1,000 = 60,000 ms  
+    // 10 minutes = 10 * 60 * 1,000 = 600,000 ms
+    // Date.now() + 600,000 = Future timestamp (expires in 10 min)
 
     const verifyLink = `http://localhost:5000/verify-email/${rawToken}`;
     await sendVerificationEmail(email, verifyLink);
@@ -77,7 +80,7 @@ Router.post("/signup", async (req, res) => {
 });
 
 // email verify
-Router.get("/verify-email/:token", async (req, res) => {
+router.get("/verify-email/:token", async (req, res) => {
   try {
     const hashedToken = crypto
       .createHash("sha256")
@@ -91,21 +94,32 @@ Router.get("/verify-email/:token", async (req, res) => {
 
     if (!user) {
       return res.status(400).send("Invalid or expired token");
-    }
+    } 
 
     user.isEmailVerified = true;
     user.emailVerificationToken = undefined;
     user.emailVerificationExpires = undefined;
     await user.save();
 
-    const email = user.email;
-    const username =  user.username;
-    const password = user.password;
-    await Verified.create({
-      Email,
-      Username, 
-      Password
-    })
+    if(user.emailVerificationExpires && user.emailVerificationExpires > Date.now()){
+      if(user.isEmailVerified == true){
+        try{
+          await user.deleteOne();
+        }catch(err){
+          console.log(err);
+        }
+
+      }
+    }
+
+    // const email = user.email;
+    // const username =  user.username;
+    // const password = user.password;
+    // await Verified.create({
+    //   Email,
+    //   Username, 
+    //   Password
+    // })
 
     res.send("Email verified successfully. You can now log in.");
   } catch (err) {
@@ -114,7 +128,7 @@ Router.get("/verify-email/:token", async (req, res) => {
   }
 });
 
-Router.post("/login", async (req, res) =>{
+router.post("/login", async (req, res) =>{
   //tocken system
   try{
     const{username, password} = req.body;
@@ -128,4 +142,4 @@ Router.post("/login", async (req, res) =>{
   }catch{};
 });
 
-export default Router;
+export default router;
