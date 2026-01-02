@@ -6,7 +6,6 @@ dotenv.config();
 
 import User from '../../models/User.js';
 import sendVerificationEmail from '../../utils/sendEmail.js';
-import Verified from '../../models/Verified.js';
 
 const app = express();
 app.use(express.json());
@@ -43,7 +42,7 @@ router.post("/signup", async (req, res) => {
     const user = User.findOne({email})
 
     try{
-      if(!user.isEmailVerified){
+      if(user.isEmailVerified == false){
         await user.deleteOne();
         console.log("User deleted!!!")
       }
