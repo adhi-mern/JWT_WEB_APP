@@ -10,7 +10,7 @@ app.use(express.json());
 import cors from 'cors';
 app.use(cors());
 
-// database 
+// Database 
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB connected"))
   .catch(err => {
@@ -19,7 +19,7 @@ mongoose.connect(process.env.MONGO_URI)
   });
 
 
-// microserveces routes
+// import routes
 import auth from './routes/auth/index.js';
 
 // Routes
@@ -27,5 +27,5 @@ app.use("/auth",auth);
 
 // start server
 app.listen(5000, () => {
-  console.log("Server running on http://localhost:5000");
+  console.log("Server running on http://localhost:5000 🔥");
 });

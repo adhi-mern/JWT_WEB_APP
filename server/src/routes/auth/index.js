@@ -29,14 +29,31 @@ router.post("/signup", async (req, res) => {
       return res.status(400).json({ message: "Invalid email format" });
     }
 
-    // Check duplicate user
-    const existingUser = await User.findOne({
-      $or: [{ email }, { username }]
-    });
+    // // Check duplicate user
+    // const existingUser = await User.findOne({
+    //   $or: [{ email }, { username }]
+    // });
 
-    if (existingUser) {
+    // if (existingUser) {
+    //   return res.status(409).json({
+    //     message: "Email or username already exists"
+    //   });
+    // }
+
+    const user = User.findOne({email})
+
+    try{
+      if(!user.isEmailVerified){
+        await user.deleteOne();
+        console.log("User deleted!!!")
+      }
+    }catch(err){
+      console.log(err);
+    }
+    const existingUser = await User.findOne({username});
+    if(existingUser){
       return res.status(409).json({
-        message: "Email or username already exists"
+        message:"Username already exist"
       });
     }
 
@@ -49,7 +66,8 @@ router.post("/signup", async (req, res) => {
       .update(rawToken)
       .digest("hex");
 
-    await User.create({
+    try{
+      await User.create({
       email,
       username,
       password: hashedPassword,
@@ -57,15 +75,19 @@ router.post("/signup", async (req, res) => {
       emailVerificationToken: hashedToken,
       emailVerificationExpires: Date.now() + 10 * 60 * 1000
     });
+    console.log("user created")
+    }catch(err){
+      console.log(err);
+    }
     // Date.now()           = Current time in milliseconds (e.g., 1735620000000)
     // 10 * 60 * 1000       = 600,000 milliseconds = 10 minutes
-    // 1 second  = 1,000 ms
-    // 1 minute  = 60 * 1,000 = 60,000 ms  
-    // 10 minutes = 10 * 60 * 1,000 = 600,000 ms
-    // Date.now() + 600,000 = Future timestamp (expires in 10 min)
 
-    const verifyLink = `http://localhost:5000/verify-email/${rawToken}`;
+    try{const verifyLink = `http://localhost:5000/auth/verify-email/${rawToken}`;
     await sendVerificationEmail(email, verifyLink);
+    console.log("working");
+  }catch(err){
+    console.log(err);
+  }
 
     res.status(201).json({
       message: "Signup successful. Please verify your email."
@@ -73,8 +95,8 @@ router.post("/signup", async (req, res) => {
 
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Server error"
-
+    res.status(500).json({ 
+      message: "Server error"
      });
   }
 });
@@ -101,25 +123,6 @@ router.get("/verify-email/:token", async (req, res) => {
     user.emailVerificationExpires = undefined;
     await user.save();
 
-    if(user.emailVerificationExpires && user.emailVerificationExpires > Date.now()){
-      if(user.isEmailVerified == true){
-        try{
-          await user.deleteOne();
-        }catch(err){
-          console.log(err);
-        }
-
-      }
-    }
-
-    // const email = user.email;
-    // const username =  user.username;
-    // const password = user.password;
-    // await Verified.create({
-    //   Email,
-    //   Username, 
-    //   Password
-    // })
 
     res.send("Email verified successfully. You can now log in.");
   } catch (err) {

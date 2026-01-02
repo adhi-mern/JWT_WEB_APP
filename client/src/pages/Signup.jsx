@@ -13,7 +13,7 @@ function Signup() {
     console.log({ email, username, password });
     //useEffect isolates side effects
       try{
-      const register = await axios.post("http://localhost:5000/signup", {
+      const register = await axios.post("http://localhost:5000/auth/signup", {
         email, username, password
       })
       alert(register.data.message);
