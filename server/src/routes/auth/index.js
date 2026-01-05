@@ -1,11 +1,14 @@
 import express, { Router } from 'express';
 import bcrypt from 'bcrypt';
-import crypto from 'crypto';
+import crypto, { createSecretKey } from 'crypto';
+import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 dotenv.config();
 
 import User from '../../models/User.js';
 import sendVerificationEmail from '../../utils/sendEmail.js';
+import jwtAuth from '../../utils/jwtAuth.js';
+//import jwtAuth from '../../utils/jwtAuth.js';
 
 const app = express();
 app.use(express.json());
@@ -55,6 +58,12 @@ router.post("/signup", async (req, res) => {
         message:"Username already exist"
       });
     }
+    const emailExisting = await User.findOne({email});
+    if(emailExisting){
+      return res.status(409).json({
+        message:"Email already exist"
+      });
+    }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -89,7 +98,7 @@ router.post("/signup", async (req, res) => {
   }
 
     res.status(201).json({
-      message: "Signup successful. Please verify your email."
+      message: "Please verify your email."
     });
 
   } catch (err) {
@@ -135,13 +144,52 @@ router.post("/login", async (req, res) =>{
   try{
     const{username, password} = req.body;
     if(!username || !password){
-      return re.status(400).json({message: "All fields required"})
+      return res.status(400).json({message: "All fields required"})
     }
     const hashedPassword = await bcrypt.hash(password, 10);
-    const existingUser = await User.findOne({
-      $and: [{username}, {password}]
-    });
-  }catch{};
+
+    const existingUser = await User.findOne({username});
+    if(!existingUser){
+      return res.status(401).json({message:"Incorrect Username or Password"})
+    }
+    if(existingUser.isEmailVerified == false){
+      return res.status(401).json({
+        message: "Email not verified"
+      })
+    }
+
+    if(existingUser.isEmailVerified == true){
+      if(existingUser.password==hashedPassword){
+        return res.status(401).json({
+          message:"Incorrect Username or Password"
+        })
+    }   
+  }
+
+  const payload = { id: existingUser._id,Email: existingUser.email};
+  const tocken = jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '100m'});//change to 10
+  res.status(200).json({tocken});
+
+  }catch(error){
+    console.log(error);
+  };
 });
+
+
+router.get("/me", jwtAuth, async(req, res)=>{
+  const user = req.user;
+  
+  const email = user.Email;
+  const me = await User.findOne({email});// without await "me" is just a Promise (MongoDB query is still running)
+  // res.status(200).json({
+  //   user
+  // })
+  res.status(200).json({
+    id: me._id,
+    username: me.username,
+    email: me.email,
+    isEmailVerified: me.isEmailVerified,
+  })
+})
 
 export default router;

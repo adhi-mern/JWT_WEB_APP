@@ -1,16 +1,23 @@
+import axios from "axios";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 function Login() {
-  const [identifier, setIdentifier] = useState(""); // email or username
+  const [username, setIdentifier] = useState(""); // email or username
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
-  const handleLogin = () => {
-    // backend call later
-    localStorage.setItem("username", identifier);
-    console.log(identifier);
-    navigate("/home");
+  const handleLogin = async() => {
+    // backend call 
+    try{
+      const res = await axios.post('http://localhost:5000/auth/login', {
+        username, password
+      });
+      localStorage.setItem("token", res.data.tocken);
+      navigate("/home");
+    }catch(er){
+         alert(err.response?.data?.message || "Login failed");
+    }
   };
 
   return (
