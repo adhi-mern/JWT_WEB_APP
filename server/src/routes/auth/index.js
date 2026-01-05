@@ -167,7 +167,7 @@ router.post("/login", async (req, res) =>{
   }
 
   const payload = { id: existingUser._id,Email: existingUser.email};
-  const tocken = jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '100m'});//change to 10
+  const tocken = jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '10m'});//change to 10
   res.status(200).json({tocken});
 
   }catch(error){
