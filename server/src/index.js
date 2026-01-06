@@ -6,6 +6,9 @@ dotenv.config();
 const app = express();
 app.use(express.json());
 
+import cookieParser from "cookie-parser";
+app.use(cookieParser());
+
 //Cross-Origin Resource Sharing(cors) - Browser security blocking your frontend → backend requests.
 import cors from 'cors';
 app.use(cors());

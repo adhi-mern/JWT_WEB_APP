@@ -11,7 +11,10 @@ function PrivateHome() {
       const token = localStorage.getItem("token");
 
       if (!token) {
-        navigate("/login");
+        const res = await axios.post("http://localhost:5000/auth/refresh",{}, {
+          withCredentials: true
+        });
+        // navigate("/login");
         return;
       }
 

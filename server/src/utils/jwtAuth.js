@@ -6,7 +6,7 @@ function jwtAuth(req, res, next){
     // console.log(req);
     const authorize = req.headers.authorization || '';
     if(!authorize){
-        return res.status(400).json({message: "Access token required"});
+        return res.status(401).json({message: "Access token required"});
     }
     const  [header, token] = authorize.split(' '); 
 
@@ -21,6 +21,7 @@ function jwtAuth(req, res, next){
         return res.status(403).json({message: "Invalid tocken"});
     }
     req.user=user;
+    // console.log(user);
     next(); // forward request to next handler in the /me route
     }); 
     

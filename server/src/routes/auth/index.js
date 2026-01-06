@@ -8,6 +8,7 @@ dotenv.config();
 import User from '../../models/User.js';
 import sendVerificationEmail from '../../utils/sendEmail.js';
 import jwtAuth from '../../utils/jwtAuth.js';
+import refreshAuth from '../../utils/refreshAuth.js';
 //import jwtAuth from '../../utils/jwtAuth.js';
 
 const app = express();
@@ -167,8 +168,23 @@ router.post("/login", async (req, res) =>{
   }
 
   const payload = { id: existingUser._id,Email: existingUser.email};
+  //node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"   
   const tocken = jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '10m'});//change to 10
-  res.status(200).json({tocken});
+  const refreshToken = jwt.sign(payload, process.env.REFRESH_TOKEN_SECRET,{expiresIn:'7d'});
+  existingUser.refreshToken= refreshToken;
+  await existingUser.save();
+  
+  res.status(200).json({
+    tocken,
+    refreshToken
+  });
+
+  res.cookie("refreshToken", refreshToken,{
+    httpOnly: true,
+    secure: true,        // true in production
+    sameSite: "strict",
+    maxAge: 7 * 24 * 60 * 60 * 1000 
+  });
 
   }catch(error){
     console.log(error);
@@ -178,7 +194,6 @@ router.post("/login", async (req, res) =>{
 
 router.get("/me", jwtAuth, async(req, res)=>{
   const user = req.user;
-  
   const email = user.Email;
   const me = await User.findOne({email});// without await "me" is just a Promise (MongoDB query is still running)
   // res.status(200).json({
@@ -191,5 +206,39 @@ router.get("/me", jwtAuth, async(req, res)=>{
     isEmailVerified: me.isEmailVerified,
   })
 })
+
+router.post("/refresh", async(req, res)=>{
+  const token = req.cookies.refreshToken;
+  console.log(token);
+  if (!token) {
+    return res.status(401).json({ message: "Refresh token missing" });
+  };
+  const user = await User.findOne({refreshToken: token});
+  if(!user){
+    return res.status(403).json({message: "Invalid Refresh Token"});
+  }
+
+  let decoded;
+  try {
+    decoded = jwt.verify(token, process.env.REFRESH_TOKEN_SECRET);
+  } catch (err) {
+    return res.status(403).json({ message: "Invalid refresh token" });
+  }
+  const payload = { id: decoded.id,Email: decoded.Email};
+  
+  const tocken = jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '10m'});//change to 10
+  const refreshToken = jwt.sign(payload, process.env.REFRESH_TOKEN_SECRET,{expiresIn:'7d'});
+  user.refreshToken= refreshToken;
+  await user.save();
+  
+  res.cookie("refreshToken", refreshToken, {
+  httpOnly: true,
+  sameSite: "strict",
+  secure: false // true in production
+});
+
+res.json({ tocken });
+
+});
 
 export default router;

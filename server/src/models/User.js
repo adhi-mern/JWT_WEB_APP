@@ -22,7 +22,8 @@ const userSchema = new mongoose.Schema({
     default: false
   },
   emailVerificationToken: String,
-  emailVerificationExpires: Date
+  emailVerificationExpires: Date,
+  refreshToken: String,
 });
 
 export  default mongoose.model("User", userSchema);
