@@ -174,16 +174,15 @@ router.post("/login", async (req, res) =>{
   existingUser.refreshToken= refreshToken;
   await existingUser.save();
   
+  res.cookie("refreshToken", refreshToken,{
+    httpOnly: true,
+    secure: false,        // true in production
+    sameSite: "strict",
+    maxAge: 7 * 24 * 60 * 60 * 1000 
+  });
   res.status(200).json({
     tocken,
     refreshToken
-  });
-
-  res.cookie("refreshToken", refreshToken,{
-    httpOnly: true,
-    secure: true,        // true in production
-    sameSite: "strict",
-    maxAge: 7 * 24 * 60 * 60 * 1000 
   });
 
   }catch(error){
@@ -208,16 +207,18 @@ router.get("/me", jwtAuth, async(req, res)=>{
 })
 
 router.post("/refresh", async(req, res)=>{
-  const token = req.cookies.refreshToken;
+  const token = req.cookies?.refreshToken;
   console.log(token);
   if (!token) {
     return res.status(401).json({ message: "Refresh token missing" });
   };
-  const user = await User.findOne({refreshToken: token});
+
+  const user = await User.findOne({refreshToken: token}); // db check
+
   if(!user){
     return res.status(403).json({message: "Invalid Refresh Token"});
   }
-
+  
   let decoded;
   try {
     decoded = jwt.verify(token, process.env.REFRESH_TOKEN_SECRET);
@@ -226,9 +227,9 @@ router.post("/refresh", async(req, res)=>{
   }
   const payload = { id: decoded.id,Email: decoded.Email};
   
-  const tocken = jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '10m'});//change to 10
+  const tocken = jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '10m'});// expire time
   const refreshToken = jwt.sign(payload, process.env.REFRESH_TOKEN_SECRET,{expiresIn:'7d'});
-  user.refreshToken= refreshToken;
+  user.refreshToken = refreshToken;
   await user.save();
   
   res.cookie("refreshToken", refreshToken, {
@@ -236,7 +237,7 @@ router.post("/refresh", async(req, res)=>{
   sameSite: "strict",
   secure: false // true in production
 });
-
+console.log("working:", tocken);
 res.json({ tocken });
 
 });

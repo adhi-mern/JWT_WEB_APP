@@ -11,7 +11,10 @@ app.use(cookieParser());
 
 //Cross-Origin Resource Sharing(cors) - Browser security blocking your frontend → backend requests.
 import cors from 'cors';
-app.use(cors());
+app.use(cors({
+  origin: "http://localhost:5173", // React app
+  credentials: true
+}));
 
 // Database 
 mongoose.connect(process.env.MONGO_URI)
