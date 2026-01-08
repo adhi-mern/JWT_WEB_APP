@@ -2,24 +2,34 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+import instance from "../api/axiosInstance";
+
 function PrivateHome() {
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchMe = async () => {
-      const token = localStorage.getItem("token");
+      let token = localStorage.getItem("token");
 
       if (!token) {
-        const res = await axios.post("http://localhost:5000/auth/refresh",{}, {
-          withCredentials: true
-        });
+        try {
+          const res = await instance.post("/auth/refresh");
+        
+        localStorage.setItem("token", res.data.tocken);
+        token = localStorage.getItem("token");
+
+        } catch (error) {
+          navigate("/login");
+        return;// stop exution here
+        }
         // navigate("/login");
-        return;
+        // return;
       }
+      
 
       try {
-        const res = await axios.get("http://localhost:5000/auth/me", {
+        const res = await instance.get("/auth/me", {
           headers: {
             Authorization: `Bearer ${token}`
           }
@@ -43,6 +53,7 @@ function PrivateHome() {
     <div className="page">
       <div className="box">
         <h2>Welcome "{user.username}"</h2>
+        
       </div>
     </div>
   );

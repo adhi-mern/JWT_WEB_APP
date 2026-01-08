@@ -190,8 +190,7 @@ router.post("/login", async (req, res) =>{
   };
 });
 
-
-router.get("/me", jwtAuth, async(req, res)=>{
+const me =  async(req, res)=>{
   const user = req.user;
   const email = user.Email;
   const me = await User.findOne({email});// without await "me" is just a Promise (MongoDB query is still running)
@@ -204,7 +203,8 @@ router.get("/me", jwtAuth, async(req, res)=>{
     email: me.email,
     isEmailVerified: me.isEmailVerified,
   })
-})
+}
+router.get("/me", jwtAuth,me)
 
 router.post("/refresh", async(req, res)=>{
   const token = req.cookies?.refreshToken;
