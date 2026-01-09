@@ -10,35 +10,12 @@ function PrivateHome() {
 
   useEffect(() => {
     const fetchMe = async () => {
-      let token = localStorage.getItem("token");
-
-      if (!token) {
-        try {
-          const res = await instance.post("/auth/refresh");
-        
-        localStorage.setItem("token", res.data.tocken);
-        token = localStorage.getItem("token");
-
-        } catch (error) {
-          navigate("/login");
-        return;// stop exution here
-        }
-        // navigate("/login");
-        // return;
-      }
-      
-
       try {
-        const res = await instance.get("/auth/me", {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        });
+        const res = await instance.get("/auth/me");
         console.log("ME API RESPONSE:", res.data);
         setUser(res.data);
 
       } catch (err) {
-        localStorage.removeItem("token");
         navigate("/login");
         console.log(err);
       }

@@ -9,7 +9,7 @@ function jwtAuth(req, res, next){
         return res.status(401).json({message: "Access token required"});
     }
     const  [header, token] = authorize.split(' '); 
-
+    
     if(!token){
         return res.status(400).json({message: "Access token required"});
     }
@@ -18,7 +18,7 @@ function jwtAuth(req, res, next){
     //Token valid → err = null, user = { id: "64f8b123...", iat: 1640995200 }
     //Token invalid → err = { name: 'TokenExpiredError', message: 'jwt expired' }, user = undefined
     if(err){
-        return res.status(403).json({message: "Invalid tocken"});
+        return res.status(401).json({message: "Invalid tocken"});
     }
     req.user=user;
     // console.log(user);

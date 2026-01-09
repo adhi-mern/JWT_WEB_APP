@@ -71,11 +71,7 @@ function Login() {
           disabled={loading}
           className="login-btn"
         >
-          {loading ? (
-          <div className="spinner"></div>
-          ) : (
-            "Login"
-          )}
+          {loading ? ( <div className="spinner"></div> ) : ( "Login" )}
         </button>
       </div>
     </div>
