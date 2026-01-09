@@ -10,17 +10,26 @@ function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
+  const [loading, setLoading] = useState(false);
+
   const handleLogin = async() => {
     // backend call 
+    setLoading(true);
     try{
       const res = await instance.post('/auth/login', 
         {username, password}
     );
       localStorage.setItem("token", res.data.tocken);
 
+       setTimeout(() => {
       navigate("/home");
-    }catch(er){
+    }, 2000);
+    }catch(err){
          alert(err.response?.data?.message || "Login failed");
+    }finally{
+      setTimeout(() => {
+      setLoading(false);
+    }, 2000);
     }
   };
 
@@ -57,7 +66,17 @@ function Login() {
           </span>
         </div>
 
-        <button onClick={handleLogin}>Login</button>
+        <button 
+          onClick={handleLogin}
+          disabled={loading}
+          className="login-btn"
+        >
+          {loading ? (
+          <div className="spinner"></div>
+          ) : (
+            "Login"
+          )}
+        </button>
       </div>
     </div>
   );
